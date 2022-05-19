@@ -93,7 +93,6 @@ As requisições são feitas via postman.
              
           }
 
-
 **Rotas para Conta**
 |Métodos| Parâmetros | Descrição |
 |---|---|---|
