@@ -1,0 +1,39 @@
+version: '3.5'
+services:
+    db:
+        image: mariadb:10.6.1
+        command: --default-authentication-plugin=mysql_native_password
+        container_name: db
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: '12345678'
+            MYSQL_DATABASE: 'bank'
+        ports:
+            - "3306:3306"
+        volumes:
+            - './db/mysqsl:/var/lib/mysql'
+        networks:
+            - ntw-api-bank
+    
+    php:
+        build: .
+        container_name: php
+        # command: bash -c 'php artisan migrate:refresh'
+        # command:
+        #     - php artisan migrate
+        restart: always
+        depends_on:
+            - db
+            - redis
+        volumes:
+            - './src:/var/www/html/api'
+            - './config/php.ini:/usr/local/etc/php/php.ini'
+            - './config/apache2.conf:/etc/apache2/apache2.conf'
+            - './config/000-default.conf:/etc/apache2/sites-available/000-default.conf'
+        ports:
+            - "80:80"
+        networks:
+            - ntw-api-bank
+networks:
+    ntw-api-bank:
+        external: true
