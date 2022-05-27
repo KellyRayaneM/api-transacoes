@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('user_sales', function (Blueprint $table) {
-            $table->id('id_user_sales')->primary();
+            $table->id('id_user_sales');
             $table->unsignedBigInteger('id_user');
             $table->softDeletes();
             $table->foreign('id_user')->references('id_user')->on('users')->onDelete('cascade');

@@ -1,39 +1,42 @@
-version: '3.5'
+version: "3.5"
+
 services:
-    db:
-        image: mariadb:10.6.1
-        command: --default-authentication-plugin=mysql_native_password
-        container_name: db
-        restart: always
-        environment:
-            MYSQL_ROOT_PASSWORD: '12345678'
-            MYSQL_DATABASE: 'bank'
-        ports:
-            - "3306:3306"
-        volumes:
-            - './db/mysqsl:/var/lib/mysql'
-        networks:
-            - ntw-api-bank
-    
-    php:
-        build: .
-        container_name: php
-        # command: bash -c 'php artisan migrate:refresh'
-        # command:
-        #     - php artisan migrate
-        restart: always
-        depends_on:
-            - db
-            - redis
-        volumes:
-            - './src:/var/www/html/api'
-            - './config/php.ini:/usr/local/etc/php/php.ini'
-            - './config/apache2.conf:/etc/apache2/apache2.conf'
-            - './config/000-default.conf:/etc/apache2/sites-available/000-default.conf'
-        ports:
-            - "80:80"
-        networks:
-            - ntw-api-bank
-networks:
-    ntw-api-bank:
-        external: true
+  php:
+    build:
+      context: "./Docker-api/php/"
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+    user: ${USER_ID}:${GROUP_ID}
+    volumes:
+      - ${PATH_APPLICATION}:/var/www/html/:rw
+      - ./php/conf/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    container_name: ${PHP_CONTAINER_NAME}${PHP_VERSION}
+
+  apache:
+    build:
+      context: "./Docker-api/apache/"
+      args:
+        APACHE_VERSION: ${APACHE_VERSION}
+    depends_on:
+      - php
+    ports:
+      - ${APACHE_PORT}:80
+    volumes:
+      - ${PATH_APPLICATION}:/var/www/html
+      - ./apache/logs:/var/log/apache2/
+    container_name: ${APACHE_CONTAINER_NAME}
+
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    command: --sql_mode=""
+    ports:
+      - ${MYSQL_PORT}:3306
+    volumes:
+      - ./Docker-api/mysql/data:/var/lib/mysql:rw
+      - ./Docker-api/mysql/conf/:/etc/mysql/conf.d/
+      - ./Docker-api/mysql/logs:/var/log/mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_NAME}
+    container_name: ${MYSQL_CONTAINER_NAME}
