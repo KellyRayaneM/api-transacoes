@@ -1,0 +1,42 @@
+version: "3.5"
+
+services:
+  php:
+    build:
+      context: "./php/"
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+    user: ${USER_ID}:${GROUP_ID}
+    volumes:
+      - ${PATH_APPLICATION}:/var/www/html/:rw
+      - ./php/conf/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    container_name: ${PHP_CONTAINER_NAME}${PHP_VERSION}
+
+  apache:
+    build:
+      context: "./apache/"
+      args:
+        APACHE_VERSION: ${APACHE_VERSION}
+    depends_on:
+      - php
+    ports:
+      - ${APACHE_PORT}:80
+    volumes:
+      - ${PATH_APPLICATION}:/var/www/html/
+      - ./apache/logs:/var/log/apache2/
+    container_name: ${APACHE_CONTAINER_NAME}
+
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    command: --sql_mode=""
+    ports:
+      - ${MYSQL_PORT}:3308
+    volumes:
+      - ./mysql/data:/var/lib/mysql:rw
+      - ./mysql/conf/:/etc/mysql/conf.d/
+      - ./mysql/logs:/var/log/mysql/
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_NAME}
+    container_name: ${MYSQL_CONTAINER_NAME}
